@@ -1,4 +1,5 @@
 import { Context } from 'hono';
+import { User } from './user';
 
 export type Env = {
 	// Example bindings
@@ -7,5 +8,7 @@ export type Env = {
 
 export type AppContext = Context<{
 	Bindings: Env;
-	Variables: {};
+	Variables: {
+		user: User;
+	};
 }>;

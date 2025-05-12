@@ -1,7 +1,9 @@
 import { fromHono } from 'chanfana';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
+import { CreateRagFolder } from './controllers/create-rag-folder';
 import { GetRagFolders } from './controllers/get-rag-folders';
+import { authMiddleware } from './middleware/auth-middleware';
 import { Env } from './types';
 
 const app = new Hono<{
@@ -10,7 +12,7 @@ const app = new Hono<{
 }>();
 
 app.use('*', cors());
-
+app.use('*', authMiddleware);
 // Authentication middleware
 // async function authMiddleware(c: AppContext, next: () => Promise<void>) {
 // 	try {
@@ -122,6 +124,7 @@ const openapi = fromHono(app);
 // Register OpenAPI endpoints (this will also register the routes in Hono)
 // TODO: add user authentication
 openapi.get('/v1/rag', GetRagFolders);
+openapi.post('/v1/rag', CreateRagFolder);
 
 // Export the Hono app
 export default app;
