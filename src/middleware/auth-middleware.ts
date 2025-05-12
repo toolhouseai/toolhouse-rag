@@ -2,9 +2,6 @@ import { createMiddleware } from 'hono/factory';
 import { getUserByApiKey } from '../lib/user';
 
 export const authMiddleware = createMiddleware(async (c, next) => {
-	// Get the bearer token from the request with the following format:
-	// Authorization: Bearer <token>
-	// Note: it's not a JWT token, it's a simple string token
 	const bearerToken = c.req.header('Authorization');
 	if (!bearerToken) {
 		return c.json({ error: 'Unauthorized' }, 401);
