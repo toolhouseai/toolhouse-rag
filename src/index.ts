@@ -1,16 +1,8 @@
-import { fromHono, OpenAPIRoute } from 'chanfana';
-import { Context, Hono } from 'hono';
+import { fromHono } from 'chanfana';
+import { Hono } from 'hono';
 import { cors } from 'hono/cors';
-
-export type Env = {
-	// Example bindings
-	toolhouseRAGbucket: R2Bucket;
-};
-
-export type AppContext = Context<{
-	Bindings: Env;
-	Variables: {};
-}>;
+import { GetRagFolders } from './controllers/get-rag-folders';
+import { Env } from './types';
 
 const app = new Hono<{
 	Bindings: Env;
@@ -126,14 +118,6 @@ const openapi = fromHono(app);
 // 		}
 // 	}
 // }
-
-export class GetRagFolders extends OpenAPIRoute {
-	schema = {};
-
-	async handle(c: AppContext) {
-		return c.json({ folders: ['folder1', 'project-alpha-docs', 'another-folder'] });
-	}
-}
 
 // Register OpenAPI endpoints (this will also register the routes in Hono)
 // TODO: add user authentication
