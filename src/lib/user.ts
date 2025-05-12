@@ -1,7 +1,8 @@
 import { User } from '../types/user';
 
-export async function getUserByApiKey(apiKey: string): Promise<User | null> {
-	const response = await fetch('http://localhost:8000/v1/me', {
+export async function getUserByApiKey(baseApiUrl: string, apiKey: string): Promise<User | null> {
+	console.log(`${baseApiUrl}/me`);
+	const response = await fetch(`${baseApiUrl}/me`, {
 		headers: {
 			Authorization: `Bearer ${apiKey}`,
 		},
