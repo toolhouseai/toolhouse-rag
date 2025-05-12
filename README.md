@@ -70,6 +70,8 @@ Start a local development server:
 npm run dev
 ```
 
+By default, local data (including R2 bucket data) is stored in the `.wrangler/state` folder in your project directory. You can customize this location using the `--persist-to` flag with `wrangler dev`. For more details, see the [Cloudflare documentation on local data storage](https://developers.cloudflare.com/workers/local-development/local-data/#where-local-data-gets-stored).
+
 ### Deployment
 
 Deploy to Cloudflare Workers:

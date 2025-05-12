@@ -1,109 +1,143 @@
-/**
- * Cloudflare Worker for R2 storage operations
- *
- * This worker provides an API for interacting with Cloudflare R2 storage.
- * It allows for uploading, downloading, and listing objects in an R2 bucket.
- *
- * - Run `npm run dev` in your terminal to start a development server
- * - Open a browser tab at http://localhost:8787/ to see your worker in action
- * - Run `npm run deploy` to publish your worker
- */
+import { fromHono, OpenAPIRoute } from 'chanfana';
+import { Context, Hono } from 'hono';
+import { cors } from 'hono/cors';
 
-export default {
-	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-		const url = new URL(request.url);
-		const key = url.pathname.slice(1);
+export type Env = {
+	// Example bindings
+	toolhouseRAGbucket: R2Bucket;
+};
 
-		// Handle CORS preflight requests
-		if (request.method === 'OPTIONS') {
-			return handleCORS(request);
-		}
+export type AppContext = Context<{
+	Bindings: Env;
+	Variables: {};
+}>;
 
-		// Add CORS headers to all responses
-		const corsHeaders = {
-			'Access-Control-Allow-Origin': '*',
-			'Access-Control-Allow-Methods': 'GET, PUT, POST, DELETE, OPTIONS',
-			'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-		};
+const app = new Hono<{
+	Bindings: Env;
+	Variables: {};
+}>();
 
-		// Route based on HTTP method
-		try {
-			if (request.method === 'GET') {
-				if (key === '') {
-					// List objects in the bucket
-					const objects = await env.toolhouseRAGbucket.list();
-					return new Response(JSON.stringify(objects), {
-						headers: {
-							'Content-Type': 'application/json',
-							...corsHeaders,
-						},
-					});
-				} else {
-					// Get a specific object
-					const object = await env.toolhouseRAGbucket.get(key);
+app.use('*', cors());
 
-					if (object === null) {
-						return new Response('Object Not Found', { status: 404, headers: corsHeaders });
-					}
+// Authentication middleware
+// async function authMiddleware(c: AppContext, next: () => Promise<void>) {
+// 	try {
+// 		const authHeader = c.req.header('Authorization');
+// 		if (!authHeader || !authHeader.startsWith('Bearer ')) {
+// 			return c.json({ error: 'Unauthorized - Missing or invalid token' }, 401);
+// 		}
 
-					const headers = new Headers(corsHeaders);
-					object.writeHttpMetadata(headers);
-					headers.set('etag', object.httpEtag);
+// 		const token = authHeader.split(' ')[1];
+// 		const secret = new TextEncoder().encode(c.env.JWT_SECRET);
 
-					return new Response(object.body, {
-						headers,
-					});
-				}
-			}
-			// Handle PUT and POST requests for uploading objects
-			if (request.method === 'PUT' || request.method === 'POST') {
-				if (!key) {
-					return new Response('Missing Key', { status: 400, headers: corsHeaders });
-				}
+// 		const { payload } = await jwtVerify(token, secret);
 
-				const contentType = request.headers.get('Content-Type') || 'application/octet-stream';
+// 		// Store user information in context
+// 		c.set('userId', payload.sub as string);
+// 		c.set('user', {
+// 			id: payload.sub as string,
+// 			email: payload.email as string,
+// 		});
 
-				// Store the object in R2
-				await env.toolhouseRAGbucket.put(key, request.body, {
-					httpMetadata: {
-						contentType,
-					},
-				});
+// 		await next();
+// 	} catch (error) {
+// 		console.error('Authentication error:', error);
+// 		return c.json({ error: 'Unauthorized - Invalid token' }, 401);
+// 	}
+// }
 
-				return new Response(`Successfully uploaded ${key}`, {
-					headers: corsHeaders,
-				});
-			}
-			// Handle DELETE requests for deleting objects
-			if (request.method === 'DELETE') {
-				if (!key) {
-					return new Response('Missing Key', { status: 400, headers: corsHeaders });
-				}
+// Apply authentication middleware to all /v1/rag routes
+// app.use('*', authMiddleware);
 
-				// Delete the object from R2
-				await env.toolhouseRAGbucket.delete(key);
+// Setup OpenAPI registry
+const openapi = fromHono(app);
 
-				return new Response(`Successfully deleted ${key}`, {
-					headers: corsHeaders,
-				});
-			}
+// export class UserFiles extends OpenAPIRoute {
+// 	schema = {};
 
-			return new Response('Method Not Allowed', { status: 405, headers: corsHeaders });
-		} catch (error) {
-			console.error(`Error processing request: ${error}`);
-			return new Response(`Error processing request: ${error}`, { status: 500, headers: corsHeaders });
-		}
-	},
-} satisfies ExportedHandler<Env>;
+// 	async handle(c: AppContext) {
+// 		const data = await this.getValidatedData<typeof this.schema>();
+// 		console.log(await c.env.toolhouseRAGbucket.list());
 
-// Handle CORS preflight requests
-function handleCORS(request: Request): Response {
-	return new Response(null, {
-		headers: {
-			'Access-Control-Allow-Origin': '*',
-			'Access-Control-Allow-Methods': 'GET, PUT, POST, DELETE, OPTIONS',
-			'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-			'Access-Control-Max-Age': '86400',
-		},
-	});
+// 		// const object = await c.env.BUCKET.list();
+
+// 		return c.json({ message: 'ok' });
+// 	}
+// }
+
+// interface RagFolderRequest {
+// 	body: {
+// 		folder_name: string;
+// 	};
+// }
+
+// export class CreateRagFolder extends OpenAPIRoute {
+// 	schema = {
+// 		body: {
+// 			type: 'object',
+// 			required: ['folder_name'],
+// 			properties: {
+// 				folder_name: {
+// 					type: 'string',
+// 					pattern: '^[a-zA-Z0-9-_]+$',
+// 					minLength: 1,
+// 					maxLength: 255,
+// 				},
+// 			},
+// 		},
+// 	} as const;
+
+// 	async handle(c: AppContext) {
+// 		try {
+// 			const data = await this.getValidatedData<RagFolderRequest>();
+// 			const userId = c.get('userId');
+
+// 			if (!userId) {
+// 				return c.json({ error: 'Unauthorized' }, 401);
+// 			}
+
+// 			if (!data.body?.folder_name) {
+// 				return c.json({ error: 'folder_name is required' }, 400);
+// 			}
+
+// 			const basePath = `toolhouse-rag/${userId}`;
+// 			const fullPath = `${basePath}/${data.body.folder_name}`;
+
+// 			// Check if base directory exists
+// 			const baseDirList = await c.env.toolhouseRAGbucket.list({ prefix: basePath, limit: 1 });
+// 			if (baseDirList.objects.length === 0) {
+// 				// Create base directory by putting an empty object
+// 				await c.env.toolhouseRAGbucket.put(`${basePath}/`, new Uint8Array(0));
+// 			}
+
+// 			// Check if folder already exists
+// 			const folderList = await c.env.toolhouseRAGbucket.list({ prefix: fullPath, limit: 1 });
+// 			if (folderList.objects.length > 0) {
+// 				return c.json({ error: `folder '${data.body.folder_name}' already exists` }, 409);
+// 			}
+
+// 			// Create the folder by putting an empty object
+// 			await c.env.toolhouseRAGbucket.put(`${fullPath}/`, new Uint8Array(0));
+
+// 			return c.json({ message: `RAG folder '${data.body.folder_name}' created successfully` }, 201);
+// 		} catch (error) {
+// 			console.error('Error creating RAG folder:', error);
+// 			return c.json({ error: 'Internal server error' }, 500);
+// 		}
+// 	}
+// }
+
+export class GetRagFolders extends OpenAPIRoute {
+	schema = {};
+
+	async handle(c: AppContext) {
+		return c.json({ folders: ['folder1', 'project-alpha-docs', 'another-folder'] });
+	}
 }
+
+// Register OpenAPI endpoints (this will also register the routes in Hono)
+// TODO: add user authentication
+openapi.get('/v1/rag', GetRagFolders);
+
+// Export the Hono app
+export default app;
