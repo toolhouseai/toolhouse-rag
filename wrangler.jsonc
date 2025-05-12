@@ -35,7 +35,7 @@
 	 * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
 	 */
 	"vars": {
-		"TOOLHOUSE_USERS_API_URL": "https://api.toolhouse.ai/v1"
+		"TOOLHOUSE_API_URL": "https://api.toolhouse.ai/v1"
 	}
 	/**
 	 * Note: Use secrets to store sensitive data.
