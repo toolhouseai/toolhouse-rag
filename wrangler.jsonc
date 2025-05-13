@@ -13,7 +13,7 @@
 	"preview_urls": true,
 	"routes": [
 		{
-			"pattern": "rag.toolhouse.ai",
+			"pattern": "rag-api.toolhouse.ai",
 			"custom_domain": true
 		}
 	],
