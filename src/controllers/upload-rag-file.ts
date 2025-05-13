@@ -113,6 +113,18 @@ export class UploadRagFile extends OpenAPIRoute {
 				);
 			}
 
+			// Validate Content-Type header
+			const contentType = c.req.header('Content-Type');
+			if (!contentType || !contentType.includes('multipart/form-data')) {
+				return c.json(
+					{
+						error: 'Invalid Content-Type',
+						details: 'Request must be multipart/form-data',
+					},
+					400
+				);
+			}
+
 			const userId = c.get('user').id;
 			const sanitizedFolderName = sanitizePath(folder_name);
 
@@ -131,7 +143,19 @@ export class UploadRagFile extends OpenAPIRoute {
 			}
 
 			// Parse the multipart form data
-			const formData = await c.req.formData();
+			let formData: FormData;
+			try {
+				formData = await c.req.formData();
+			} catch (error) {
+				return c.json(
+					{
+						error: 'Invalid form data',
+						details: 'Failed to parse multipart form data. Please ensure the request is properly formatted.',
+					},
+					400
+				);
+			}
+
 			const files = formData.getAll('files[]') as File[];
 
 			if (!files.length) {
