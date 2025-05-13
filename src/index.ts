@@ -3,6 +3,7 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { CreateRagFolder } from './controllers/create-rag-folder';
 import { GetRagFolders } from './controllers/get-rag-folders';
+import { UploadRagFile } from './controllers/upload-rag-file';
 import { authMiddleware } from './middleware/auth-middleware';
 import { Env } from './types';
 
@@ -19,6 +20,7 @@ const openapi = fromHono(app);
 
 openapi.get('/v1/rag', GetRagFolders);
 openapi.post('/v1/rag', CreateRagFolder);
+openapi.post('/v1/rag/:folder_name', UploadRagFile);
 
 // Export the Hono app
 export default app;
