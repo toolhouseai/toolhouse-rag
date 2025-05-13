@@ -14,8 +14,8 @@ export const authMiddleware = createMiddleware(async (c, next) => {
 		return c.json({ error: 'Unauthorized' }, 401);
 	}
 
-	const { TOOLHOUSE_USERS_API_URL } = env<{ TOOLHOUSE_USERS_API_URL: string }>(c);
-	const user = await getUserByApiKey(TOOLHOUSE_USERS_API_URL, apiKey);
+	const { TOOLHOUSE_API_URL } = env<{ TOOLHOUSE_API_URL: string }>(c);
+	const user = await getUserByApiKey(TOOLHOUSE_API_URL, apiKey);
 	if (!user) {
 		return c.json({ error: 'Unauthorized' }, 401);
 	}

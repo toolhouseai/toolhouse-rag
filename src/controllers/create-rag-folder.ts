@@ -19,8 +19,13 @@ export class CreateRagFolder extends OpenAPIRoute {
 
 		const userId = c.get('user').id;
 
+		// Ensure folder_name does not have leading/trailing slashes
+		const sanitizedFolderName = folder_name.replace(/^\/+|\/+$/g, '');
+		const folderKey = `${userId}/${sanitizedFolderName}/`;
+
 		try {
-			await c.env.toolhouseRAGbucket.put(`${userId}/${folder_name}`, '');
+			// Create a zero-byte object to represent the folder
+			await c.env.toolhouseRAGbucket.put(folderKey, '');
 		} catch (error) {
 			return c.json({ error: 'Failed to create RAG folder' }, 500);
 		}
