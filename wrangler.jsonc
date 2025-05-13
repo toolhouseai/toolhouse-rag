@@ -10,6 +10,13 @@
 	"observability": {
 		"enabled": true
 	},
+	"preview_urls": true,
+	"routes": [
+		{
+			"pattern": "rag.toolhouse.ai",
+			"custom_domain": true
+		}
+	],
 	"r2_buckets": [
 		{
 			"binding": "toolhouseRAGbucket",
