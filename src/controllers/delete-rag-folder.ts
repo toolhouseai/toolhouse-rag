@@ -36,8 +36,10 @@ export class DeleteRagFolder extends OpenAPIRoute {
 				if (obj.key !== `${userId}/${sanitizedFolderName}/`) { // Exclude the folder itself
 					await c.env.toolhouseRAGbucket.delete(obj.key);
 					return obj.key.replace(`${userId}/${sanitizedFolderName}/`, '');
+				}else{
+					await c.env.toolhouseRAGbucket.delete(obj.key);
+					return null; // Return null for the folder
 				}
-				return null; // Return null for the folder
 			})).then(files => files.filter(file => file !== null)); // Filter out null values
 		} catch (error) {
 			return c.json({ error: 'Failed to delete RAG folder' }, 500);
