@@ -6,7 +6,6 @@
 		"deploy": "wrangler deploy",
 		"dev": "wrangler dev",
 		"start": "wrangler dev",
-		"local": "wrangler dev --port 8780",
 		"test": "vitest",
 		"cf-typegen": "wrangler types",
 		"local": "wrangler dev --port 8780"
