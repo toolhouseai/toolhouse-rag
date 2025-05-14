@@ -1,49 +1,40 @@
-# Toolhouse RAG Service
+# Toolhouse RAG service
 
-A Cloudflare Worker that provides a simple API for interacting with Cloudflare R2 storage.
+This service encapsulates our RAG tool that allows users to perform RAG using their files
 
-## Development
+## Initial setup
 
-### Prerequisites
+Make sure your Toolhouse backend service is running locally.
 
-- [Node.js](https://nodejs.org/) (v16 or later)
-- [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/get-started/)
+1. Clone this repo
+2. run `npm i`
+3. Create a .dev.vars file and add your Gemini API Key
+4. run `npm run local`
 
-### Setup
+## Upload your files
 
-1. Clone this repository
-2. Install dependencies:
+In order to test RAG you will need to upload files. Files are uploaded locally.
 
-```bash
-npm install
-```
+To upload a file in your local environment, you will first need to create a folder, and then upload a file into that folder.
 
-3. Configure your R2 bucket in `wrangler.jsonc`
-
-### Local Development
-
-Start a local development server:
+To create a folder:
 
 ```bash
-npm run dev
+curl --request POST \
+  --url http://0.0.0.0:8780/v1/rag \
+  --header 'Authorization: Bearer $YOUR_LOCAL_ENV_API_KEY' \
+  --header 'content-type: application/json' \
+  --data '{
+  "folder_name": "$YOUR_FOLDER_NAME"
+}'
 ```
 
-By default, local data (including R2 bucket data) is stored in the `.wrangler/state` folder in your project directory. You can customize this location using the `--persist-to` flag with `wrangler dev`. For more details, see the [Cloudflare documentation on local data storage](https://developers.cloudflare.com/workers/local-development/local-data/#where-local-data-gets-stored).
-
-### Deployment
-
-Deploy to Cloudflare Workers:
+To upload a file:
 
 ```bash
-npm run deploy
+curl --request POST \
+  --url http://0.0.0.0:8780/v1/rag/rag_test \
+  --header 'Authorization: Bearer $YOUR_LOCAL_ENV_API_KEY' \
+  --header 'content-type: multipart/form-data' \
+  --form 'files[]=@/path_to_file'
 ```
-
-## Environment Variables
-
-The worker uses the following environment bindings:
-
-- `toolhouseRAGbucket`: R2 bucket binding
-
-## License
-
-MIT

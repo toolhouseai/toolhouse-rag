@@ -6,6 +6,7 @@ import { GetRagFolders } from './controllers/get-rag-folders';
 import { UploadRagFile } from './controllers/upload-rag-file';
 import { authMiddleware } from './middleware/auth-middleware';
 import { Env } from './types';
+import { RagTool } from './controllers/rag-tool';
 
 const app = new Hono<{
 	Bindings: Env;
@@ -13,7 +14,7 @@ const app = new Hono<{
 }>();
 
 app.use('*', cors());
-app.use('*', authMiddleware);
+app.use('/v1/*', authMiddleware);
 
 // Setup OpenAPI registry
 const openapi = fromHono(app);
@@ -21,6 +22,7 @@ const openapi = fromHono(app);
 openapi.get('/v1/rag', GetRagFolders);
 openapi.post('/v1/rag', CreateRagFolder);
 openapi.post('/v1/rag/:folder_name', UploadRagFile);
+openapi.post('/toolhouse-rag', RagTool);
 
 // Export the Hono app
 export default app;
