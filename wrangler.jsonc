@@ -44,7 +44,6 @@
 	 */
 	"vars": {
 		"TOOLHOUSE_API_URL": "https://api.toolhouse.ai/v1",
-		"GEMINI_API_KEY": "",
 		"GEMINI_MODEL": "gemini-2.5-flash-preview-04-17"
 	}
 	/**
