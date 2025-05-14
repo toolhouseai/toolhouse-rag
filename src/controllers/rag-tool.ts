@@ -39,8 +39,6 @@ export class RagTool extends OpenAPIRoute {
 		const { GEMINI_API_KEY, GEMINI_MODEL } = env<{ GEMINI_API_KEY: string; GEMINI_MODEL: string }>(c);
 		const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 
-		console.log(GEMINI_MODEL);
-
 		let output: string[] = [];
 
 		const prompt = `
@@ -66,48 +64,55 @@ export class RagTool extends OpenAPIRoute {
 			Query:
 			${query}`;
 
-		await Promise.all(
-			files.objects.map(async (file) => {
-				const fileFromBucket = await c.env.toolhouseRAGbucket.get(file.key);
-				const mimeType = fileFromBucket?.httpMetadata?.contentType;
-				const fileArrayBuffer = await fileFromBucket?.arrayBuffer();
+		try {
+			await Promise.all(
+				files.objects.map(async (file) => {
+					const fileFromBucket = await c.env.toolhouseRAGbucket.get(file.key);
+					const mimeType = fileFromBucket?.httpMetadata?.contentType;
+					const fileArrayBuffer = await fileFromBucket?.arrayBuffer();
 
-				if (!fileArrayBuffer) {
-					return;
-				}
+					if (!fileArrayBuffer) {
+						return;
+					}
 
-				const fileBase64 = Buffer.from(fileArrayBuffer).toString('base64');
+					const fileBase64 = Buffer.from(fileArrayBuffer).toString('base64');
 
-				const contents = [
-					{ text: prompt },
-					{
-						inlineData: {
-							mimeType: mimeType,
-							data: fileBase64,
-						},
-					},
-				];
-
-				const response = await ai.models.generateContent({
-					model: GEMINI_MODEL,
-					contents: contents,
-					config: {
-						responseMimeType: 'application/json',
-						responseSchema: {
-							type: Type.ARRAY,
-							items: {
-								type: Type.STRING,
+					const contents = [
+						{ text: prompt },
+						{
+							inlineData: {
+								mimeType: mimeType,
+								data: fileBase64,
 							},
 						},
-					},
-				});
+					];
 
-				if (response.text) {
-					const jsonResponse = JSON.parse(response.text);
-					output.push(...jsonResponse);
-				}
-			})
-		);
+					const response = await ai.models.generateContent({
+						model: GEMINI_MODEL,
+						contents: contents,
+						config: {
+							responseMimeType: 'application/json',
+							responseSchema: {
+								type: Type.ARRAY,
+								items: {
+									type: Type.STRING,
+								},
+							},
+						},
+					});
+
+					if (response.text) {
+						const jsonResponse = JSON.parse(response.text);
+						output.push(...jsonResponse);
+					}
+				})
+			);
+		} catch (error) {
+			console.error(error);
+			return c.json({
+				message: 'The tools failed to extract data from RAG',
+			});
+		}
 
 		return c.json({
 			response: output,
