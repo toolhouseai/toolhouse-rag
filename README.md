@@ -1,91 +1,40 @@
-# Toolhouse R2 Worker
+# Toolhouse RAG service
 
-A Cloudflare Worker that provides a simple API for interacting with Cloudflare R2 storage.
+This service encapsulates our RAG tool that allows users to perform RAG using their files
 
-## Features
+## Initial setup
 
-- Upload files to R2 storage
-- Download files from R2 storage
-- List all files in the R2 bucket
-- Delete files from R2 storage
-- CORS support for browser-based applications
+Make sure your Toolhouse backend service is running locally.
 
-## API Endpoints
+1. Clone this repo
+2. run `npm i`
+3. Create a .dev.vars file and add your Gemini API Key
+4. run `npm run local`
 
-### List Objects
+## Upload your files
 
-```
-GET /
-```
+In order to test RAG you will need to upload files. Files are uploaded locally.
 
-Returns a JSON list of all objects in the R2 bucket.
+To upload a file in your local environment, you will first need to create a folder, and then upload a file into that folder.
 
-### Get Object
-
-```
-GET /{key}
-```
-
-Returns the object with the specified key.
-
-### Upload Object
-
-```
-PUT /{key}
-```
-
-Uploads a file to the R2 bucket with the specified key.
-
-### Delete Object
-
-```
-DELETE /{key}
-```
-
-Deletes the object with the specified key from the R2 bucket.
-
-## Development
-
-### Prerequisites
-
-- [Node.js](https://nodejs.org/) (v16 or later)
-- [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/get-started/)
-
-### Setup
-
-1. Clone this repository
-2. Install dependencies:
+To create a folder:
 
 ```bash
-npm install
+curl --request POST \
+  --url http://0.0.0.0:8780/v1/rag \
+  --header 'Authorization: Bearer $YOUR_LOCAL_ENV_API_KEY' \
+  --header 'content-type: application/json' \
+  --data '{
+  "folder_name": "$YOUR_FOLDER_NAME"
+}'
 ```
 
-3. Configure your R2 bucket in `wrangler.jsonc`
-
-### Local Development
-
-Start a local development server:
+To upload a file:
 
 ```bash
-npm run dev
+curl --request POST \
+  --url http://0.0.0.0:8780/v1/rag/rag_test \
+  --header 'Authorization: Bearer $YOUR_LOCAL_ENV_API_KEY' \
+  --header 'content-type: multipart/form-data' \
+  --form 'files[]=@/path_to_file'
 ```
-
-By default, local data (including R2 bucket data) is stored in the `.wrangler/state` folder in your project directory. You can customize this location using the `--persist-to` flag with `wrangler dev`. For more details, see the [Cloudflare documentation on local data storage](https://developers.cloudflare.com/workers/local-development/local-data/#where-local-data-gets-stored).
-
-### Deployment
-
-Deploy to Cloudflare Workers:
-
-```bash
-npm run deploy
-```
-
-## Environment Variables
-
-The worker uses the following environment bindings:
-
-- `toolhouseRAGbucket`: R2 bucket binding
-
-## License
-
-MIT

@@ -14,7 +14,7 @@ const app = new Hono<{
 }>();
 
 app.use('*', cors());
-app.use('*', authMiddleware);
+app.use('/v1/*', authMiddleware);
 
 // Setup OpenAPI registry
 const openapi = fromHono(app);

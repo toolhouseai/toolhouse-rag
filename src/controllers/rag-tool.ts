@@ -21,7 +21,7 @@ export class RagTool extends OpenAPIRoute {
 		const { rag, query } = body;
 
 		const files = await c.env.toolhouseRAGbucket.list({
-			prefix: rag,
+			prefix: rag + '/',
 		});
 
 		// Remove the first element from the files array
@@ -41,34 +41,59 @@ export class RagTool extends OpenAPIRoute {
 
 		let output: string[] = [];
 
-		const prompt = `
-You are a JSON extraction assistant.
+		const prompt = query;
+		const systemInstruction = `
+You are a highly specialized JSON extraction assistant. Your sole purpose is to identify and extract relevant text segments from a provided document based on a user's query.
 
-You will receive:
-- A query string.
-- A chunk of text from an attached document (provided as inline data after this prompt).
+You will receive the following inputs:
+1.  \`user_query\`: A string containing the user's search query.
+2.  \`document_content\`: A string containing the full text of the document to be searched. This document will be provided inline immediately following this prompt.
 
-Your task:
-1. Perform a case-insensitive search of the provided chunk for the query.
-2. For each occurrence, extract the entire sentence containing the query.
-   - Define “sentence” as the text from the previous sentence-ending punctuation (., ?, !) up to and including the next one.
-3. Preserve the excerpt exactly (all punctuation, spacing, and casing).
-4. Output **only** a JSON array of strings:
-   - If matches are found:
-     ["First sentence containing the query.", "Second sentence…", …]
-   - If none:
-     []
+Your precise task is to:
+1.  **Understand the Query:** Carefully analyze the \`user_query\` to grasp its intent and key informational needs.
+2.  **Scan Document:** Thoroughly read the entire \`document_content\`.
+3.  **Identify Relevant Paragraphs:**
+    * Locate all paragraphs within the \`document_content\` that contain information relevant to the \`user_query\`.
+    * A paragraph is considered relevant if any sentence, phrase, or significant portion within it directly addresses, answers, or contains key terms/concepts from the \`user_query\`.
+    * **CRITICAL: Case-Insensitive Matching:** All matching operations (for keywords, phrases, concepts, etc.) between the \`user_query\` and the \`document_content\` MUST be performed on a strictly case-insensitive basis. This applies to all text, including acronyms, abbreviations, and proper nouns.
+4.  **Preserve Excerpts Exactly:** Each extracted paragraph must be an exact copy from the \`document_content\`. Preserve all original punctuation, spacing, capitalization, and formatting of the extracted paragraph. Do not alter or summarize the extracted text in any way.
+5.  **Output Format - JSON Array of Strings:**
+    * Your output **MUST** be a single, valid JSON array of strings.
+    * If one or more relevant paragraphs are found, the array should contain these paragraphs as strings.
+        Example: \`["First relevant paragraph text.", "Second relevant paragraph text.", ...]\`
+    * If NO relevant paragraphs are found after a thorough search, output an empty JSON array.
+        Example: \`[]\`
 
-Do **not** output anything else—no commentary, no extra keys, no code fences. Ensure it parses with JSON.parse without error.
+**Strict Output Requirements - Adhere Without Fail:**
+* **JSON Only:** Output **ONLY** the JSON array. Do not include any introductory phrases, explanations, apologies, summaries, or any other text before or after the JSON array.
+* **No Markdown/Code Fences:** Do not wrap the JSON output in Markdown code fences or any other formatting.
+* **Parseable JSON:** The output must be directly parsable by \`JSON.parse()\` without any modification or error.
 
-Query:
-${query}
+**Example Scenario:**
+
+If \`user_query\` is: "tell me about apple's latest processor"
+And \`document_content\` contains a paragraph: "Apple recently announced the M4 chip, their newest processor. It boasts significant performance gains and efficiency improvements over the M3 series. This new chip will power the next generation of iPads and MacBooks."
+
+Your output MUST be:
+\`["Apple recently announced the M4 chip, their newest processor. It boasts significant performance gains and efficiency improvements over the M3 series. This new chip will power the next generation of iPads and MacBooks."]\`
+
+If \`user_query\` is: "information on banana cultivation"
+And \`document_content\` has no relevant paragraphs.
+
+Your output MUST be:
+\`[]\`
+
+Begin processing the \`document_content\` that follows.
 `;
 
 		try {
 			await Promise.all(
 				files.objects.map(async (file) => {
 					const fileFromBucket = await c.env.toolhouseRAGbucket.get(file.key);
+					if (file.size === 0) {
+						return;
+					}
+
 					const mimeType = fileFromBucket?.httpMetadata?.contentType;
 					const fileArrayBuffer = await fileFromBucket?.arrayBuffer();
 
@@ -92,6 +117,8 @@ ${query}
 						model: GEMINI_MODEL,
 						contents: contents,
 						config: {
+							temperature: 0,
+							systemInstruction,
 							responseMimeType: 'application/json',
 							responseSchema: {
 								type: Type.ARRAY,
