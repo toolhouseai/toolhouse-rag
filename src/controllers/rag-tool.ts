@@ -102,8 +102,6 @@ export class RagTool extends OpenAPIRoute {
 					},
 				});
 
-				console.log(response.text);
-
 				if (response.text) {
 					const jsonResponse = JSON.parse(response.text);
 					output.push(...jsonResponse);
