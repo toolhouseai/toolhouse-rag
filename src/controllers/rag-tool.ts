@@ -43,26 +43,28 @@ export class RagTool extends OpenAPIRoute {
 
 		let output: string[] = [];
 
-		const prompt = `Return **only** a JSON array of verbatim excerpts (strings) that match the query.  
-Do **not** output anything else—no commentary, no keys, no formatting.
+		const prompt = `
+			You are a JSON extraction assistant. Follow these rules exactly:
 
-Input:
-- One chunk of the attached document (≤1000 characters, coherent).
-- A query string.
+			Inputs:
+			- One chunk of the attached document.
+			- A query string.
 
-Chunking rules:
-- Each chunk must stand alone, preserving context and key ideas.
-- Prioritize keeping related concepts or sections together.
+			Extraction rules:
+			1. Search the chunk for the query (case-insensitive).
+			2. For each occurrence, extract the entire sentence containing the query:
+			- A "sentence" is defined as the text from the previous sentence-ending punctuation (., ?, !) up to the next one.
+			3. Each excerpt must include the query exactly as it appears in the text (preserving case and spacing).
 
-Task:
-1. Search the chunk for the query (case-insensitive).
-2. For each occurrence, extract the **entire sentence** containing the query.  
-   - Define “sentence” as the text from the previous sentence-ending punctuation (.?!) up to the next one.  
-3. Return a JSON array of those exact excerpts, preserving all original punctuation, spacing, and capitalization.
-4. If no matches are found, return an empty array: [].
+			Output requirements:
+			- Output only valid JSON—nothing else. No commentary, no extra keys.
+			- The JSON must be an array of strings:
+			- If you find matches: ["First full sentence containing the query.", "Second one…"]
+			- If you find no matches: []
+			- Ensure the output can be parsed with JSON.parse without error.
 
-Query:
-${query}`;
+			Query:
+			${query}`;
 
 		await Promise.all(
 			files.objects.map(async (file) => {
