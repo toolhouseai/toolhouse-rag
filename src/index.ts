@@ -4,6 +4,7 @@ import { cors } from 'hono/cors';
 import { CreateRagFolder } from './controllers/create-rag-folder';
 import { GetRagFolders } from './controllers/get-rag-folders';
 import { UploadRagFile } from './controllers/upload-rag-file';
+import { DeleteRagFolder } from './controllers/delete-rag-folder';
 import { authMiddleware } from './middleware/auth-middleware';
 import { Env } from './types';
 import { RagTool } from './controllers/rag-tool';
@@ -23,6 +24,7 @@ openapi.get('/v1/rag', GetRagFolders);
 openapi.post('/v1/rag', CreateRagFolder);
 openapi.post('/v1/rag/:folder_name', UploadRagFile);
 openapi.post('/toolhouse-rag', RagTool);
+openapi.delete('/v1/rag/:folder_name', DeleteRagFolder);
 
 // Export the Hono app
 export default app;
