@@ -42,27 +42,28 @@ export class RagTool extends OpenAPIRoute {
 		let output: string[] = [];
 
 		const prompt = `
-			You are a JSON extraction assistant. Follow these rules exactly:
+You are a JSON extraction assistant.
 
-			Inputs:
-			- One chunk of the attached document.
-			- A query string.
+You will receive:
+- A query string.
+- A chunk of text from an attached document (provided as inline data after this prompt).
 
-			Extraction rules:
-			1. Search the chunk for the query (case-insensitive).
-			2. For each occurrence, extract the entire sentence containing the query:
-			- A "sentence" is defined as the text from the previous sentence-ending punctuation (., ?, !) up to the next one.
-			3. Each excerpt must include the query exactly as it appears in the text (preserving case and spacing).
+Your task:
+1. Perform a case-insensitive search of the provided chunk for the query.
+2. For each occurrence, extract the entire sentence containing the query.
+   - Define “sentence” as the text from the previous sentence-ending punctuation (., ?, !) up to and including the next one.
+3. Preserve the excerpt exactly (all punctuation, spacing, and casing).
+4. Output **only** a JSON array of strings:
+   - If matches are found:
+     ["First sentence containing the query.", "Second sentence…", …]
+   - If none:
+     []
 
-			Output requirements:
-			- Output only valid JSON—nothing else. No commentary, no extra keys.
-			- The JSON must be an array of strings:
-			- If you find matches: ["First full sentence containing the query.", "Second one…"]
-			- If you find no matches: []
-			- Ensure the output can be parsed with JSON.parse without error.
+Do **not** output anything else—no commentary, no extra keys, no code fences. Ensure it parses with JSON.parse without error.
 
-			Query:
-			${query}`;
+Query:
+${query}
+`;
 
 		try {
 			await Promise.all(
