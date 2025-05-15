@@ -8,7 +8,7 @@ import { DeleteRagFolder } from './controllers/delete-rag-folder';
 import { authMiddleware } from './middleware/auth-middleware';
 import { Env } from './types';
 import { RagTool } from './controllers/rag-tool';
-
+import { GetRagFolderFiles } from './controllers/get-rag-folder-files';
 const app = new Hono<{
 	Bindings: Env;
 	Variables: {};
@@ -25,6 +25,7 @@ openapi.post('/v1/rag', CreateRagFolder);
 openapi.post('/v1/rag/:folder_name', UploadRagFile);
 openapi.post('/toolhouse-rag', RagTool);
 openapi.delete('/v1/rag/:folder_name', DeleteRagFolder);
+openapi.get('/v1/rag/:folder_name', GetRagFolderFiles);
 
 // Export the Hono app
 export default app;
