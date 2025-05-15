@@ -2,14 +2,6 @@ import { OpenAPIRoute } from 'chanfana';
 import { z } from 'zod';
 import { AppContext } from '../types';
 
-// Types
-interface UploadedFile {
-	name: string;
-	type: string;
-	size: number;
-	arrayBuffer(): Promise<ArrayBuffer>;
-}
-
 interface UploadResult {
 	file_name: string;
 	file_key?: string;
@@ -32,17 +24,9 @@ const RETRY_DELAY_MS = 1000;
 // Schema definition
 const schema = {
 	params: z.object({
-		folder_name: z.string(),
+		folder_name: z.string().regex(/^[a-zA-Z0-9-]+$/, 'Folder name can only contain letters, numbers, and dashes'),
 	}),
 } as const;
-
-type ValidatedData = {
-	params: {
-		folder_name: string;
-	};
-};
-
-type Schema = typeof schema;
 
 // Utility functions
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -126,17 +110,16 @@ export class UploadRagFile extends OpenAPIRoute {
 			}
 
 			const userId = c.get('user').id;
-			const sanitizedFolderName = sanitizePath(folder_name);
 
 			// Verify folder access
-			const folderKey = `${userId}/${sanitizedFolderName}/`;
+			const folderKey = `${userId}/${folder_name}/`;
 			const folderExists = await c.env.toolhouseRAGbucket.head(folderKey);
 
 			if (!folderExists) {
 				return c.json(
 					{
-						error: 'RAG folder not found or you do not have access to it',
-						details: 'The specified folder either does not exist or does not belong to your account',
+						error: 'RAG folder not found',
+						details: 'The specified folder does not exist',
 					},
 					404
 				);
@@ -169,7 +152,7 @@ export class UploadRagFile extends OpenAPIRoute {
 			}
 
 			// Upload all files
-			const results = await Promise.all(files.map((file) => uploadSingleFile(file, c.env.toolhouseRAGbucket, userId, sanitizedFolderName)));
+			const results = await Promise.all(files.map((file) => uploadSingleFile(file, c.env.toolhouseRAGbucket, userId, folder_name)));
 
 			// Process results
 			const failedUploads = results.filter((r: UploadResult) => r.status === 'error');
