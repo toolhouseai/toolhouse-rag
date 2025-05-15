@@ -1,5 +1,6 @@
 import { contentJson, OpenAPIRoute } from 'chanfana';
 import { z } from 'zod';
+import { ragFolderNameSchema } from '../schemas/rag';
 import { AppContext } from '../types';
 
 export class CreateRagFolder extends OpenAPIRoute {
@@ -7,7 +8,7 @@ export class CreateRagFolder extends OpenAPIRoute {
 		request: {
 			body: contentJson(
 				z.object({
-					folder_name: z.string().regex(/^[a-zA-Z0-9-]+$/, 'Folder name can only contain letters, numbers, and dashes'),
+					folder_name: ragFolderNameSchema,
 				})
 			),
 		},

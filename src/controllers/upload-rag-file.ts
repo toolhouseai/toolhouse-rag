@@ -1,5 +1,6 @@
 import { OpenAPIRoute } from 'chanfana';
 import { z } from 'zod';
+import { ragFolderNameSchema } from '../schemas/rag';
 import { AppContext } from '../types';
 
 interface UploadResult {
@@ -24,7 +25,7 @@ const RETRY_DELAY_MS = 1000;
 // Schema definition
 const schema = {
 	params: z.object({
-		folder_name: z.string().regex(/^[a-zA-Z0-9-]+$/, 'Folder name can only contain letters, numbers, and dashes'),
+		folder_name: ragFolderNameSchema,
 	}),
 } as const;
 
