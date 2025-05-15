@@ -7,7 +7,7 @@ export class CreateRagFolder extends OpenAPIRoute {
 		request: {
 			body: contentJson(
 				z.object({
-					folder_name: z.string(),
+					folder_name: z.string().regex(/^[a-zA-Z0-9-]+$/, 'Folder name can only contain letters, numbers, and dashes'),
 				})
 			),
 		},
