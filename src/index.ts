@@ -2,13 +2,15 @@ import { fromHono } from 'chanfana';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { CreateRagFolder } from './controllers/create-rag-folder';
-import { GetRagFolders } from './controllers/get-rag-folders';
-import { UploadRagFile } from './controllers/upload-rag-file';
+import { DeleteRagFile } from './controllers/delete-rag-file';
 import { DeleteRagFolder } from './controllers/delete-rag-folder';
+import { GetRagFolderFiles } from './controllers/get-rag-folder-files';
+import { GetRagFolders } from './controllers/get-rag-folders';
+import { RagTool } from './controllers/rag-tool';
+import { UploadRagFile } from './controllers/upload-rag-file';
 import { authMiddleware } from './middleware/auth-middleware';
 import { Env } from './types';
-import { RagTool } from './controllers/rag-tool';
-import { GetRagFolderFiles } from './controllers/get-rag-folder-files';
+
 const app = new Hono<{
 	Bindings: Env;
 	Variables: {};
@@ -26,6 +28,8 @@ openapi.post('/v1/rag/:folder_name', UploadRagFile);
 openapi.post('/toolhouse-rag', RagTool);
 openapi.delete('/v1/rag/:folder_name', DeleteRagFolder);
 openapi.get('/v1/rag/:folder_name', GetRagFolderFiles);
+
+openapi.delete('/v1/rag/:folder_name/:filename', DeleteRagFile);
 
 // Export the Hono app
 export default app;
