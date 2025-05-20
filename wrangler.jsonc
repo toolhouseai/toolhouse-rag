@@ -42,11 +42,11 @@
 	 * Environment Variables
 	 * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
 	 */
-	// "vars": {
-	// 	"TOOLHOUSE_API_URL": "https://api.toolhouse.ai/v1",
-	// 	"GEMINI_MODEL": "gemini-2.5-flash-preview-04-17",
-	// 	"GEMINI_API_KEY": "sk-...",
-	// }
+	"vars": {
+		"TOOLHOUSE_API_URL": "https://api.toolhouse.ai/v1",
+		"GEMINI_MODEL": "gemini-2.5-flash-preview-04-17",
+		"GEMINI_API_KEY": "AIzaSyAjYKWRhD3hv4M-_HvlcLIv1SfgpEjqTIQ",
+	}
 	/**
 	 * Note: Use secrets to store sensitive data.
 	 * https://developers.cloudflare.com/workers/configuration/secrets/
