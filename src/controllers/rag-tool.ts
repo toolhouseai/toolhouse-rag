@@ -41,17 +41,10 @@ export class RagTool extends OpenAPIRoute {
 
 		let output: string[] = [];
 
-		const prompt = query;
-		const systemInstruction = `
-I am providing a document attached. 
-    Please split the document into chunks that maintain semantic coherence and ensure that each chunk represents a complete and meaningful unit of information. 
-    Each chunk should stand alone, preserving the context and meaning without splitting key ideas across chunks. 
-    Use your understanding of the content's structure, topics, and flow to identify natural breakpoints in the text. 
-    Ensure that no chunk exceeds 1000 characters length, and prioritize keeping related concepts or sections together.
-
-    Do not modify the document, just split to chunks and return them as an array of strings, where each string is one chunk of the document.
-    Return all the relevant chunks that answer to the query: ${query}
-`;
+		const systemInstruction = `The user will provide a document. 
+Please return the parts of the document that are relevant to the user query.
+Use your understanding of the content's structure, topics, and flow to identify natural breakpoints in the text to return the parts that are the most relevant to the user query.
+Prioritize keeping related concepts or sections together.`;
 
 		try {
 			await Promise.all(
@@ -71,7 +64,7 @@ I am providing a document attached.
 					const fileBase64 = Buffer.from(fileArrayBuffer).toString('base64');
 
 					const contents = [
-						{ text: prompt },
+						{ text: query },
 						{
 							inlineData: {
 								mimeType: mimeType,
