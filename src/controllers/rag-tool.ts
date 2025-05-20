@@ -105,7 +105,7 @@ I am providing a document attached.
 		} catch (error) {
 			console.error(error);
 			return c.json({
-				message: 'The tools failed to extract data from RAG',
+				message: 'Failed to extract data from RAG due to a timeout: the query took too long to process.',
 			});
 		}
 
