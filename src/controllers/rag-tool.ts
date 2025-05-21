@@ -47,7 +47,7 @@ Use your understanding of the content's structure, topics, and flow to identify 
 Prioritize keeping related concepts or sections together.`;
 
 		try {
-			await Promise.all(
+			const results = await Promise.allSettled(
 				files.objects.map(async (file) => {
 					const fileFromBucket = await c.env.toolhouseRAGbucket.get(file.key);
 					if (file.size === 0) {
@@ -91,10 +91,17 @@ Prioritize keeping related concepts or sections together.`;
 
 					if (response.text) {
 						const jsonResponse = JSON.parse(response.text);
-						output.push(...jsonResponse);
+						return jsonResponse;
 					}
+					return [];
 				})
 			);
+
+			// Process only fulfilled promises
+			output = results
+				.filter((result): result is PromiseFulfilledResult<string[]> => result.status === 'fulfilled')
+				.map((result) => result.value)
+				.flat();
 		} catch (error) {
 			console.error(error);
 			return c.json({
