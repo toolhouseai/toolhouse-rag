@@ -20,7 +20,11 @@ app.use('*', cors());
 app.use('/v1/*', authMiddleware);
 
 // Setup OpenAPI registry
-const openapi = fromHono(app);
+const openapi = fromHono(app, {
+	docs_url: null,
+	redoc_url: null,
+	openapi_url: null,
+});
 
 openapi.get('/v1/rag', GetRagFolders);
 openapi.post('/v1/rag', CreateRagFolder);
