@@ -21,6 +21,7 @@ interface UploadSummary {
 // Constants
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 1000;
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
 
 // Schema definition
 const schema = {
@@ -56,7 +57,14 @@ async function uploadFileWithRetry(
 async function uploadSingleFile(file: File, bucket: R2Bucket, userId: string, folderName: string): Promise<UploadResult> {
 	const sanitizedFileName = sanitizePath(file.name);
 	const fileKey = `${userId}/${folderName}/${sanitizedFileName}`;
-
+	// check if the file size is too large
+	if (file.size > MAX_FILE_SIZE) {
+		return {
+			file_name: file.name,
+			error: `File ${file.name} exceeds maximum size of ${MAX_FILE_SIZE / 1024 / 1024}MB`,
+			status: 'error',
+		};
+	}
 	try {
 		const content = await file.arrayBuffer();
 		await uploadFileWithRetry(bucket, fileKey, content, {
