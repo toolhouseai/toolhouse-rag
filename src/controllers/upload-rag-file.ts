@@ -21,7 +21,7 @@ interface UploadSummary {
 // Constants
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 1000;
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
+const MAX_FILE_SIZE = 10; // * 1024 * 1024; // 10MB in bytes
 
 // Schema definition
 const schema = {
@@ -180,7 +180,7 @@ export class UploadRagFile extends OpenAPIRoute {
 						details: 'None of the files could be uploaded successfully',
 						files: results,
 					},
-					500
+					failedUploads.some((r: UploadResult) => r.error?.includes('exceeds maximum size')) ? 413 : 500
 				);
 			}
 
