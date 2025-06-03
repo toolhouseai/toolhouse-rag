@@ -45,8 +45,8 @@ export class RagTool extends OpenAPIRoute {
 Please return the parts of the document that are relevant to the user query.
 Use your understanding of the content's structure, topics, and flow to identify natural breakpoints in the text to return the parts that are the most relevant to the user query.
 Prioritize keeping related concepts or sections together.`;
-
-		try {
+		
+try {
 			const results = await Promise.allSettled(
 				files.objects.map(async (file) => {
 					const fileFromBucket = await c.env.toolhouseRAGbucket.get(file.key);
@@ -72,11 +72,14 @@ Prioritize keeping related concepts or sections together.`;
 							},
 						},
 					];
-
 					const response = await ai.models.generateContent({
 						model: GEMINI_MODEL,
 						contents: contents,
 						config: {
+							thinkingConfig: {
+								thinkingBudget: 0,
+								includeThoughts: false
+							},
 							temperature: 0,
 							systemInstruction,
 							responseMimeType: 'application/json',
@@ -88,7 +91,6 @@ Prioritize keeping related concepts or sections together.`;
 							},
 						},
 					});
-
 					if (response.text) {
 						const jsonResponse = JSON.parse(response.text);
 						return jsonResponse;
