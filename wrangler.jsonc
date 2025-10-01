@@ -8,6 +8,7 @@
 	"main": "src/index.ts",
 	"compatibility_date": "2025-05-09",
 	"compatibility_flags": ["nodejs_compat"],
+	"account_id": "aafa059ef44cf5b10fa9b7ef87c30f61",
 	"observability": {
 		"enabled": true
 	},
@@ -18,11 +19,15 @@
 			"custom_domain": true
 		}
 	],
+	"ai": {
+		"binding": "AI",
+		"remote": true
+	},
 	"r2_buckets": [
 		{
 			"binding": "toolhouseRAGbucket",
 			"bucket_name": "rag",
-			"preview_bucket_name": "rag-preview"
+			"remote": true
 		}
 	],
 	/**
@@ -44,8 +49,7 @@
 	 */
 	"vars": {
 		"TOOLHOUSE_API_URL": "https://api.toolhouse.ai/v1",
-		"GEMINI_MODEL": "gemini-2.5-flash-preview-05-20",
-		"GEMINI_API_KEY": "AIzaSyAjYKWRhD3hv4M-_HvlcLIv1SfgpEjqTIQ",
+		"RAG_INSTANCE_NAME": "toolhouse-rag"
 	}
 	/**
 	 * Note: Use secrets to store sensitive data.
